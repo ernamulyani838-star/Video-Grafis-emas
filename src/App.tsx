@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
-import { FileJson, Sparkles, Copy, CheckCircle2, Video, AlertCircle, Lightbulb, Wand2 } from 'lucide-react';
+import { FileJson, Sparkles, Copy, CheckCircle2, Video, AlertCircle, Lightbulb, Wand2, Key, X, Check, Search, ChevronRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { CONTENT_IDEAS } from './ideas';
 
 const DEFAULT_TOPIC = `The Gold Cycle: From Discovery to Processing. 
 1. Scene 1: Ultra-modern 3D isometric view of a mountain fracture revealing glowing golden veins. Sleek UI overlays point to 'Discovery Zone' with clean kinetic typography.
@@ -11,6 +10,10 @@ const DEFAULT_TOPIC = `The Gold Cycle: From Discovery to Processing.
 3. Scene 3: Clean, high-tech industrial processing facility. A futuristic 3D infographic breaks down the smelting process with neon-lit progress bars and holographic gold purity statistics.`;
 
 export default function App() {
+  const ITEMS_PER_PAGE = 6;
+  const [ideaPage, setIdeaPage] = useState(0);
+  const [userApiKey, setUserApiKey] = useState(() => localStorage.getItem('user_gemini_api_key') || '');
+  const [showApiSettings, setShowApiSettings] = useState(false);
   const [idea, setIdea] = useState("Konten edukasi tentang pertambangan emas, mulai dari penemuannya, proses pengambilan hingga pengolahan");
   const [isGeneratingConcept, setIsGeneratingConcept] = useState(false);
   const [topic, setTopic] = useState(DEFAULT_TOPIC);
@@ -19,11 +22,39 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const totalIdeas = CONTENT_IDEAS.length;
+  const startIndex = ideaPage * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalIdeas);
+  const currentIdeas = CONTENT_IDEAS.slice(startIndex, endIndex);
+
+  const handleNextIdeas = () => {
+    setIdeaPage((prev) => (prev + 1) * ITEMS_PER_PAGE >= totalIdeas ? 0 : prev + 1);
+  };
+
+  const handlePrevIdeas = () => {
+    setIdeaPage((prev) => prev === 0 ? Math.floor((totalIdeas - 1) / ITEMS_PER_PAGE) : prev - 1);
+  };
+
+  const getAiInstance = () => {
+    const key = userApiKey.trim() || process.env.GEMINI_API_KEY;
+    if (!key) {
+      setShowApiSettings(true);
+      throw new Error("API Key is missing. Please enter your Gemini API Key in the settings.");
+    }
+    return new GoogleGenAI({ apiKey: key });
+  };
+
+  const saveApiKey = (key: string) => {
+    setUserApiKey(key);
+    localStorage.setItem('user_gemini_api_key', key);
+  };
+
   const generateConcept = async () => {
     setIsGeneratingConcept(true);
     setError(null);
 
     try {
+      const ai = getAiInstance();
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `You are an expert director for viral short-form educational videos (TikTok/Reels/Shorts).
@@ -67,6 +98,7 @@ export default function App() {
     setJsonOutput(null);
 
     try {
+      const ai = getAiInstance();
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `You are an expert AI video generation prompt engineer. 
@@ -142,20 +174,76 @@ export default function App() {
       >
         
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-5 border-b border-white/5 pb-8 mb-8">
-          <motion.div 
-            whileHover={{ scale: 1.05, rotate: 5 }}
-            className="w-16 h-16 shrink-0 bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.3)] border border-amber-300/20"
-          >
-            <Video className="w-8 h-8" />
-          </motion.div>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-white to-neutral-400 tracking-tight">
-              Modern Infographic Prompts
-            </h1>
-            <p className="text-neutral-400 text-sm md:text-base mt-2 font-medium max-w-2xl">
-              Turn your ideas into ultra-modern, trendy 3D motion graphics prompts structured exactly as JSON for AI video models.
-            </p>
+        <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-8 mb-8 space-y-4 md:space-y-0">
+          <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-5">
+            <motion.div 
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              className="w-16 h-16 shrink-0 bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.3)] border border-amber-300/20"
+            >
+              <Video className="w-8 h-8" />
+            </motion.div>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-white to-neutral-400 tracking-tight">
+                Modern Infographic Prompts
+              </h1>
+              <p className="text-neutral-400 text-sm md:text-base mt-2 font-medium max-w-2xl">
+                Turn your ideas into ultra-modern, trendy 3D motion graphics prompts structured exactly as JSON for AI video models.
+              </p>
+            </div>
+          </div>
+          
+          <div className="relative">
+            <button
+              onClick={() => setShowApiSettings(!showApiSettings)}
+              className={`p-3 rounded-2xl border transition-all ${
+                userApiKey 
+                  ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20' 
+                  : 'bg-white/5 border-white/10 text-neutral-400 hover:bg-white/10 hover:text-white'
+              }`}
+              title="API Key Settings"
+            >
+              <Key className="w-5 h-5" />
+            </button>
+            
+            <AnimatePresence>
+              {showApiSettings && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute right-0 top-full mt-3 w-80 bg-neutral-900/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-5 shadow-2xl z-50 flex flex-col"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <Key className="w-4 h-4 text-amber-500" />
+                      API Key Settings
+                    </h3>
+                    <button onClick={() => setShowApiSettings(false)} className="text-neutral-500 hover:text-white">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <p className="text-xs text-neutral-400 mb-4 leading-relaxed">
+                    Enter your own Google Gemini API key to override the default system key. Your key is stored securely in your browser's local storage.
+                  </p>
+                  
+                  <input
+                    type="password"
+                    value={userApiKey}
+                    onChange={(e) => saveApiKey(e.target.value)}
+                    placeholder="AIzaSy..."
+                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-neutral-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-all placeholder:text-neutral-700 font-mono"
+                  />
+                  
+                  {userApiKey && (
+                    <div className="mt-3 flex items-center space-x-2 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg text-xs font-medium">
+                      <Check className="w-4 h-4" />
+                      <span>Custom API key active</span>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </header>
 
@@ -185,21 +273,45 @@ export default function App() {
                 placeholder="What is your video about?"
               />
               
-              <div className="flex flex-wrap gap-2 mb-5">
-                {[
-                  "Evolusi teknologi tambang emas: dari manual hingga AI",
-                  "Proses kimiawi pemisahan emas dari bebatuan",
-                  "Bagaimana aktivitas vulkanik membentuk urat emas",
-                  "Dampak ekonomi vs lingkungan dari tambang emas modern"
-                ].map((preset, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setIdea(preset)}
-                    className="text-[11px] px-3 py-1.5 bg-neutral-800/50 hover:bg-blue-500/20 text-neutral-400 hover:text-blue-300 rounded-full border border-white/5 hover:border-blue-500/30 transition-all text-left"
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-neutral-400 tracking-wider">
+                  QUICK IDEAS <span className="text-neutral-600 font-normal">({startIndex + 1}-{endIndex} of {totalIdeas})</span>
+                </p>
+                <div className="flex items-center space-x-2">
+                  <button 
+                    onClick={handlePrevIdeas}
+                    className="text-xs flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 px-2 py-1 rounded-md"
                   >
-                    {preset}
+                    <ChevronLeft className="w-3 h-3" />
+                    <span>Prev</span>
                   </button>
-                ))}
+                  <button 
+                    onClick={handleNextIdeas}
+                    className="text-xs flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 px-2 py-1 rounded-md"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-5 max-h-[140px] overflow-y-auto custom-scrollbar pr-1">
+                <AnimatePresence mode="popLayout">
+                  {currentIdeas.map((preset, idx) => (
+                    <motion.button
+                      layout
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.2 }}
+                      key={preset}
+                      onClick={() => setIdea(preset)}
+                      className="text-[11px] px-3 py-1.5 bg-neutral-800/50 hover:bg-blue-500/20 text-neutral-300 hover:text-blue-300 rounded-full border border-white/5 hover:border-blue-500/30 transition-all text-left flex-1 min-w-[200px]"
+                    >
+                      {preset}
+                    </motion.button>
+                  ))}
+                </AnimatePresence>
               </div>
 
               <button
