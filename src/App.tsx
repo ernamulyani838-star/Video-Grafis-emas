@@ -25,6 +25,7 @@ export default function App() {
   const [parsedOutput, setParsedOutput] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedCaption, setCopiedCaption] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleRandomizeIdea = () => {
@@ -119,7 +120,7 @@ export default function App() {
         - Include a voice-over script for each scene that is precisely paced to fit the 8-second duration.
         - Suggest modern, impactful sound effects (SFX) to enhance the visual transitions and info-graphics.
         - ALL video-related text values in the JSON (including "video_title", "visual_description", "camera_movement", "on_screen_text_labels", and "voice_over_script") MUST be in English. Do not write them in Indonesian or any other language, even if the topic description is a mix.
-        - Generate an engaging and relevant "social_media_caption" (can be in Indonesian, to engage the audience) for the video, along with a list of "hashtags".
+        - Generate an engaging and relevant "social_media_caption" strictly in English for the video, along with a list of "hashtags".
         
         Respond ONLY with a valid JSON object matching exactly this structure:
         {
@@ -167,6 +168,15 @@ export default function App() {
       navigator.clipboard.writeText(jsonOutput);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const copyCaptionToClipboard = () => {
+    if (parsedOutput && parsedOutput.social_media_caption) {
+      const textToCopy = `${parsedOutput.social_media_caption}\n\n${parsedOutput.hashtags ? parsedOutput.hashtags.join(' ') : ''}`;
+      navigator.clipboard.writeText(textToCopy);
+      setCopiedCaption(true);
+      setTimeout(() => setCopiedCaption(false), 2000);
     }
   };
 
@@ -445,13 +455,22 @@ export default function App() {
                 >
                   <div className="absolute top-0 left-0 w-32 h-32 bg-sky-500/10 blur-3xl rounded-full" />
                   
-                  <div className="flex items-center space-x-3 mb-4 relative z-10">
-                    <div className="p-1.5 bg-sky-500/20 rounded-lg border border-sky-500/20 text-sky-400">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <div className="flex items-center justify-between mb-4 relative z-10">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-1.5 bg-sky-500/20 rounded-lg border border-sky-500/20 text-sky-400">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      </div>
+                      <h3 className="text-sm font-bold text-neutral-300 tracking-widest uppercase">
+                        Social Media Caption
+                      </h3>
                     </div>
-                    <h3 className="text-sm font-bold text-neutral-300 tracking-widest uppercase">
-                      Social Media Caption
-                    </h3>
+                    <button
+                      onClick={copyCaptionToClipboard}
+                      className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-all active:scale-95 border border-white/5"
+                      title="Copy Caption & Hashtags"
+                    >
+                      {copiedCaption ? <CheckCircle2 className="w-4 h-4 text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]" /> : <Copy className="w-4 h-4" />}
+                    </button>
                   </div>
                   
                   <div className="relative z-10 space-y-4">
