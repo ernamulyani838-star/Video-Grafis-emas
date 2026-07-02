@@ -386,6 +386,54 @@ export default function App() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Social Media Caption Card */}
+            <AnimatePresence>
+              {parsedOutput && parsedOutput.social_media_caption && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                  className="bg-neutral-900/40 backdrop-blur-2xl border border-sky-500/20 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 w-32 h-32 bg-sky-500/10 blur-3xl rounded-full" />
+                  
+                  <div className="flex items-center justify-between mb-4 relative z-10">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-1.5 bg-sky-500/20 rounded-lg border border-sky-500/20 text-sky-400">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      </div>
+                      <h3 className="text-sm font-bold text-neutral-300 tracking-widest uppercase">
+                        Social Media Caption
+                      </h3>
+                    </div>
+                    <button
+                      onClick={copyCaptionToClipboard}
+                      className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-all active:scale-95 border border-white/5"
+                      title="Copy Caption & Hashtags"
+                    >
+                      {copiedCaption ? <CheckCircle2 className="w-4 h-4 text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  
+                  <div className="relative z-10 space-y-4">
+                    <p className="text-sm text-neutral-200 leading-relaxed bg-black/40 p-4 rounded-2xl border border-white/5">
+                      {parsedOutput.social_media_caption}
+                    </p>
+                    
+                    {parsedOutput.hashtags && parsedOutput.hashtags.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {parsedOutput.hashtags.map((tag: string, idx: number) => (
+                          <span key={idx} className="text-xs text-sky-300 bg-sky-500/10 border border-sky-500/20 px-2 py-1 rounded-md">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Output Section */}
@@ -443,54 +491,6 @@ export default function App() {
                 </AnimatePresence>
               </div>
             </div>
-
-            {/* Social Media Caption Card */}
-            <AnimatePresence>
-              {parsedOutput && parsedOutput.social_media_caption && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-                  className="bg-neutral-900/40 backdrop-blur-2xl border border-sky-500/20 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden"
-                >
-                  <div className="absolute top-0 left-0 w-32 h-32 bg-sky-500/10 blur-3xl rounded-full" />
-                  
-                  <div className="flex items-center justify-between mb-4 relative z-10">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-1.5 bg-sky-500/20 rounded-lg border border-sky-500/20 text-sky-400">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                      </div>
-                      <h3 className="text-sm font-bold text-neutral-300 tracking-widest uppercase">
-                        Social Media Caption
-                      </h3>
-                    </div>
-                    <button
-                      onClick={copyCaptionToClipboard}
-                      className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-all active:scale-95 border border-white/5"
-                      title="Copy Caption & Hashtags"
-                    >
-                      {copiedCaption ? <CheckCircle2 className="w-4 h-4 text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]" /> : <Copy className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  
-                  <div className="relative z-10 space-y-4">
-                    <p className="text-sm text-neutral-200 leading-relaxed bg-black/40 p-4 rounded-2xl border border-white/5">
-                      {parsedOutput.social_media_caption}
-                    </p>
-                    
-                    {parsedOutput.hashtags && parsedOutput.hashtags.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {parsedOutput.hashtags.map((tag: string, idx: number) => (
-                          <span key={idx} className="text-xs text-sky-300 bg-sky-500/10 border border-sky-500/20 px-2 py-1 rounded-md">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.div>
         </div>
       </motion.div>
